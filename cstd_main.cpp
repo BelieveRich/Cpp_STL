@@ -1,12 +1,20 @@
 #include <iostream>
+#include <string>
+
+// STL container headers
 #include <array>
+#include <deque>
 #include <vector>
 
 using namespace std;
 
+// Macro definition
+// #define FULL_COMPILE_SPEED
+
 // Forward declaration
 void execute_STL_Array();
 void execute_STL_Vector();
+void execute_STL_Deque();
 
 template<typename T, size_t N>
 void test_std_array_iterators(std::array<T,N>&);
@@ -18,6 +26,7 @@ BEGIN:
     cout << "This executable tests all the C++ Standard(STL) library functionalities:" << endl;
     cout << "1. Array" << endl;
     cout << "2. Vector" << endl;
+    cout << "3. Deque" << endl;
     
     uint16_t input = 0;
     cout << "\n\nSelect CSTD case to run: ";    
@@ -45,6 +54,11 @@ BEGIN:
             (void)execute_STL_Vector();
             break;
         }
+        case 3:
+        {
+            (void)execute_STL_Deque();
+            break;
+        }        
         default:
             cout << "Invalid input!" << endl << endl;
             goto BEGIN; 
@@ -105,6 +119,7 @@ void test_front_back_and_data(std::array<T,N>* inputPtr)
  * **********************************************************************/
 void execute_STL_Array()
 {
+#ifdef FULL_COMPILE_SPEED
     // operator = will copy every element of the warray with element of another array
     constexpr uint8_t int16ArraySize = 10;
     std::array<int16_t, int16ArraySize> int16ArrayOriginal = {0};
@@ -184,12 +199,14 @@ void execute_STL_Array()
         input1.at(i) = i * 3;
     }
     test_std_array_iterators(input1);
+#endif
     return;
 }
 
 template<typename T, size_t N>
 void test_std_array_iterators(std::array<T,N>& arrayPtr)
 {
+#ifdef FULL_COMPILE_SPEED
     output_whole_std_array(arrayPtr, "test_std_array_iterators arrayPtr");
 
     // use auto iterator to display values, iterators are basically the pointer to each element and can be displayed or altered directly
@@ -228,6 +245,7 @@ void test_std_array_iterators(std::array<T,N>& arrayPtr)
         // This won't compile because cbegin and cend are constant iterators. Only for reading!
         // *it = 1;
     }
+#endif
 }
 
 /***********************************************
@@ -242,15 +260,17 @@ template<typename T>
 void output_std_vector(std::vector<T>& vec, string output_tag)
 {
     cout << output_tag << " = ";
-    for (auto it = vec.begin(); it < vec.end(); it++)
+    for (typename std::vector<T>::iterator it = vec.begin(); it < vec.end(); advance(it,1))
     {
         cout << *it << " ";
     }
+
     cout << endl;
 }
 
 void execute_STL_Vector()
 {
+#ifdef FULL_COMPILE_SPEED
     std::vector<int> v = {0,1,2,3,4,5};
     // 100.0f 100.0f 100.0f
     std::vector<float> f(3, 100.0f);
@@ -375,4 +395,134 @@ void execute_STL_Vector()
         output_std_vector(v, "modifer 2 emplace 1");           
         cout << "vec size = " << v.size() << " max_size = " << v.max_size() << " capacity = " << v.capacity() << endl;        
     }
+#endif
+}
+
+/***********************************************
+ * STL Deque:
+ * deque (usually pronounced like "deck") is an irregular acronym of double-ended queue. Double-ended queues are sequence containers with
+ *  dynamic sizes that can be expanded or contracted on both ends (either its front or its back).
+ *  Specific libraries may implement deques in different ways, generally as some form of dynamic array. 
+ *  But in any case, they allow for the individual elements to be accessed directly through random access iterators, with storage handled
+ *  automatically by expanding and contracting the container as needed.
+ * Therefore, they provide a functionality similar to vectors, but with efficient insertion and deletion of elements
+ *  also at the beginning of the sequence, and not only at its end. But, unlike vectors, deques are not guaranteed to store all its elements
+ *  in contiguous storage locations: accessing elements in a deque by offsetting a pointer to another element causes undefined behavior. 
+ * Both vectors and deques provide a very similar interface and can be used for similar purposes, 
+ * but internally both work in quite different ways: While vectors use a single array that needs to be occasionally reallocated for growth,
+ *  the elements of a deque can be scattered in different chunks of storage, with the container keeping the necessary information internally
+ *  to provide direct access to any of its elements in constant time and with a uniform sequential interface (through iterators). 
+ * Therefore, deques are a little more complex internally than vectors, but this allows them to grow more efficiently under certain circumstances,
+ *  especially with very long sequences, where reallocations become more expensive.
+
+For operations that involve frequent insertion or removals of elements at positions other than the beginning or the end, deques perform worse and have less consistent iterators and references than lists and forward lists.
+ * Element access: at(), [] operator, assign(), front()/back()
+ * Iterator access: begin()/end(), rbegin()/rend()
+ * Capacity: empty(), size(), resize(), max_size(),  shrink_to_fit()
+ * Modifiers: clear(), insert(), emplace()/emplace_front()/emplace_back(), erase(), push_back()/push_front(),  pop_front/pop_back(),
+ *            swap()
+ ************************************************/
+template<typename T>
+void output_std_deque(std::deque<T>& myDeq, string output_tag)
+{
+    // Use iterator to display all
+    cout << output_tag << " = ";
+    /* for (auto it = myDeq.begin(); it < myDeq.end(); advance(it, 1))
+    {
+        cout << *it << " ";
+    } */
+    for (auto i = 0; i < myDeq.size(); i++)
+    {
+        cout << myDeq.at(i) << " ";
+    }
+    cout << endl;
+}
+
+void execute_STL_Deque()
+{
+    std::deque<string> myDeq;
+    for (auto i = 0; i < 10; i++)
+    {
+        myDeq.push_back(to_string(i));
+    }
+
+    output_std_deque(myDeq, "myDeq input");
+
+    // Element access: at(), [] operator, assign(), front()/back()
+    cout << "myDeq[3] = " << myDeq[3] << endl;;
+    cout << "myDeq.at(6) = " << myDeq.at(6) << endl;
+
+    // myDeq will be replaced with 10 Hello_World
+    // assign() has 3 overloads:
+    // 1. Range: assign(Iterator_first, iterator_last)
+    // 2. Fill:  assign(count, value)
+    // 3. initializer:  assign(initializer_list<value_type> il),  
+    //                 the new contents are copies of the values passed as initializer list, in the same order.
+    std::deque<string> copiedDeq{"a", "b", "c", "1", "2", "3"};
+    myDeq.assign(copiedDeq.begin(), copiedDeq.end()); // 1. Range via iterator
+    output_std_deque(myDeq, "1. Range via iterator");    
+    myDeq.clear();
+
+    myDeq.assign(10, "Hello_World!");  // 2. Fill assign with 10x Hello_World
+    output_std_deque(myDeq, "2. Fill assign");    
+    myDeq.clear();
+
+    myDeq.assign({"9", "8", "7", "6", "5"});  // 3. Initializer list
+    output_std_deque(myDeq, "3. Initializer list");
+    
+    cout << "front = " << myDeq.front() << " back = " << myDeq.back() << endl;
+
+    // Iterator access: begin()/end(), rbegin()/rend()
+    for (auto it = myDeq.begin(); it < myDeq.end(); it++)
+    {
+        // cat every string by "meow"
+        *it += "meow";
+    }
+    output_std_deque(myDeq, "4. iterator begin -> end cat by meow");
+    for (auto it = myDeq.rbegin(); it < myDeq.rend(); it++)
+    {
+        // cat every element by "baobao"
+        *it += "_baobao";
+    }
+    output_std_deque(myDeq, "5. iterator reverse begin -> rend cat by baobao");    
+
+    // Capacity access: empty(), size(), resize(), max_size(),  shrink_to_fit()
+    std::deque<double> myDeq3;
+    if (!myDeq.empty())
+    {
+        myDeq.clear();
+        // Creat a new int myDeq
+        std::deque<double> myDeq2 = {1.0f, 2.0f, 3.3f, 4.4f, 8.5f, 12.3f};
+        cout << "myDeq2.size() = " << myDeq2.size() << endl;
+        // This will expand size 6 -> 20 ,with bunch 55.8f behind from 14 - 20
+        myDeq2.resize(20, 55.8f);
+        output_std_deque(myDeq2, "6. myDeq2.resize1");    
+        cout << "myDeq2.size() = " << myDeq2.size() << endl;        
+        // this will shrink size from 20 -> 7, but adding no 30.2f anywhere because no need new initialization
+        myDeq2.resize(7, 30.2f);
+        output_std_deque(myDeq2, "7. myDeq2.resize2");
+        cout << "myDeq2.size() = " << myDeq2.size() << endl;
+
+        // copy ctor
+        myDeq3 = myDeq2;            
+    }
+    // Modifiers: clear(), insert(), emplace()/emplace_front()/emplace_back(), erase(), 
+    // push_back()/push_front(),  pop_front/pop_back(), swap()
+
+    // We are inserting 6x 3939889 at begin()
+    myDeq3.insert(myDeq3.begin(), 6, 3939889.0);
+    output_std_deque(myDeq3, "8. myDeq3.insert 1");
+
+    // We are inserting (rbegin - rbegin+3) into the end of myDeq3
+    myDeq3.insert(myDeq3.end(), myDeq3.rbegin(), next(myDeq3.rbegin(), 3));
+    output_std_deque(myDeq3, "9. myDeq3.insert 2");
+
+    for (auto i=0; i < 3; i++)
+    {
+        myDeq3.pop_front();
+        myDeq3.pop_back();
+    }
+    output_std_deque(myDeq3, "8. myDeq3 pop_front & pop_back");
+    myDeq3.erase(myDeq3.begin(), prev(myDeq3.end(), 3));
+    output_std_deque(myDeq3, "9. myDeq3 erase ");
 }
