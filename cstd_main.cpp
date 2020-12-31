@@ -5,6 +5,8 @@
 #include <array>
 #include <deque>
 #include <vector>
+#include <forward_list>
+#include <list>
 
 using namespace std;
 
@@ -15,6 +17,8 @@ using namespace std;
 void execute_STL_Array();
 void execute_STL_Vector();
 void execute_STL_Deque();
+void execute_STL_Forward_List();
+void execute_STL_List();
 
 template<typename T, size_t N>
 void test_std_array_iterators(std::array<T,N>&);
@@ -27,6 +31,8 @@ BEGIN:
     cout << "1. Array" << endl;
     cout << "2. Vector" << endl;
     cout << "3. Deque" << endl;
+    cout << "4. Forward_list" << endl;
+    cout << "5. List" << endl;
     
     uint16_t input = 0;
     cout << "\n\nSelect CSTD case to run: ";    
@@ -58,7 +64,17 @@ BEGIN:
         {
             (void)execute_STL_Deque();
             break;
-        }        
+        }
+        case 4:
+        {
+            (void)execute_STL_Forward_List();
+            break;
+        }       
+        case 5:
+        {
+            (void)execute_STL_List();
+            break;
+        }
         default:
             cout << "Invalid input!" << endl << endl;
             goto BEGIN; 
@@ -525,4 +541,284 @@ void execute_STL_Deque()
     output_std_deque(myDeq3, "8. myDeq3 pop_front & pop_back");
     myDeq3.erase(myDeq3.begin(), prev(myDeq3.end(), 3));
     output_std_deque(myDeq3, "9. myDeq3 erase ");
+}
+
+/***********************************************
+ * STL Forward List:
+ * std::forward_list is a container that supports fast insertion and removal of elements from anywhere in the container. 
+ * Fast random access is not supported. It is implemented as a singly-linked list. 
+ * Compared to std::list this container provides more space efficient storage when bidirectional iteration is not needed.
+ * 
+ * Note: No size() member function, no rbegin/rend(), no end()
+ * Operator == complexity is linear to number of elements
+ * Note: iterator cannot compare iterator < list.end() because list does not support end().
+ *       can only use for (auto& _ : slist)  to check
+ * 
+ * Member Functions: Ctor/Dtor, operator =, assign(), get_allocator()
+ * Element access: Front()
+ * Iterators: before_begin()  // returns an iterator to the element before beginning
+ *           begin()
+ *           There is no end() // Forward_list maintains no pointer to the end due to O(N) complexity
+ * Capacity: empty(), max_size()
+ * Modifers: clear(), insert_after()/emplace_after(), erase_after(), push_front()/emplace_front(), pop_front()
+ *           resize(), swap()
+ * List operations: merge() // merges two sorted lists
+ *           splice_after()  // moves elements from another forward_list
+ *           remove(), remove_if()  // removes elements satisfying specific criteria
+ *           reverse()   // reverse orders 
+ *           unique()    // removes consecutive duplicate elements
+ *           sort()
+ * ********************************************/
+template<typename T>
+void output_STL_forward_list(std::forward_list<T>& fwdList, string output_tag)
+{
+    cout << output_tag << " = ";
+    // for (auto it = fwdList.begin(); it != fwdList.end(); it++)
+    // {
+    //     cout << *it;
+    // }
+    for (auto& element : fwdList)
+    {
+        cout << element;
+    }
+    cout << std::endl;
+}
+
+template<typename T>
+void output_STL_forward_list_space(std::forward_list<T>& fwdList, string output_tag)
+{
+    cout << output_tag << " = ";
+    for (auto& element : fwdList)
+    {
+        cout << element << " ";
+    }
+    cout << std::endl;
+}
+
+void execute_STL_Forward_List()
+{
+    std::forward_list<string> fwdList1 = {"q","u","a","l","comm"};
+    if (!fwdList1.empty())
+    {
+        // Qualcomm
+        fwdList1.front() = "Q";
+        output_STL_forward_list(fwdList1, "fwdList1.front(Q)");
+
+        // pop_front(), push_front()
+        fwdList1.pop_front();
+        output_STL_forward_list(fwdList1, "fwdList1.pop_front()");        
+        fwdList1.push_front("I love Q.....");
+        output_STL_forward_list(fwdList1, "fwdList1.push_front(I love Q....)");
+
+        // very huge = 57646075230342387 as this is free memory size 
+        cout << "max_size = " << fwdList1.max_size() << endl;;
+        fwdList1.clear();
+        // max_size still the same
+        cout << "after clear max_size() = " << fwdList1.max_size() << endl;
+        fwdList1.resize(1000);
+        cout << "after re_size(1000) = " << fwdList1.max_size() << endl;
+
+        // assign
+        fwdList1.assign({"q","u","a","l","comm"}); // qualcomm
+        output_STL_forward_list(fwdList1, "fwdList1.assign(qualcomm)");  
+
+        // erase_after
+        fwdList1.erase_after(next(fwdList1.begin(),3));  // qual
+        output_STL_forward_list(fwdList1, "fwdList1.erase_after(begin()+3)");
+
+        // insert_after(), Note: MUST USE iterator before_begin() to reach the last element then call insert_after(), end() will point to NULL
+        // 3 ways to insert, 
+        // a. via  initializer {},
+        // b. via iterators first,end from another list
+        // c. via count + val
+
+        // a. via initializer:
+        fwdList1.insert_after(fwdList1.begin(), {",comm ", "what a ", "lovely ", "company"});
+        output_STL_forward_list(fwdList1, "insert 1. fwdList1.insert_after() 1");
+
+        // b. via iterators range
+        fwdList1.assign({"q","u","a","l","comm"}); // qualcomm
+        std::forward_list<string> fwdList2;
+        fwdList2.assign({"stock price = ", "$148.75", " keep going ", "up!"});
+        output_STL_forward_list(fwdList2, "fwdList2");
+        
+        // did all below in order to traverse thru the forward list...
+        auto it = fwdList1.before_begin();
+        for (auto _ : fwdList1)
+        {
+            it++;
+        }
+        // works: fwdList1 + fwdList2
+        fwdList1.insert_after(it, fwdList2.begin(), fwdList2.end());
+        output_STL_forward_list(fwdList1, "insert 2. fwdList1.insert_after(fwdList2)");
+
+        // c. via count + val
+        auto it2 = fwdList2.before_begin();
+        std::advance(it2, std::distance(fwdList2.begin(), fwdList2.end()));
+        fwdList1.insert_after(it2, 5, " 888");    // insert 5 "888" to the end of the forward list
+        output_STL_forward_list(fwdList2, "insert 3. fwdList2 insert_after(it2, 5, 888)");
+
+        // Merge(), splice_after(), remove(), remove_if(), reverse(), unique(), sort()
+        // 1. Sort()
+        std::forward_list<float> floatFwdList;
+        floatFwdList.assign({4.0f, 9.0f, 3.0f, 3.88f, 4.32f, 5.38f, 11.9f, 1.2f});
+        output_STL_forward_list(floatFwdList, "before sort ");   // 4.0f, 9.0f, 3.0f, 3.88f, 4.32f, 5.38f, 11.9f, 1.2f
+        floatFwdList.sort();
+        output_STL_forward_list_space(floatFwdList, "post sort ");   // 1.2 3 3.88 4 4.32 5.38 9 11.9
+
+        // 2. Merge()
+        std::forward_list<float> floatFwdList2;
+        floatFwdList2.assign({3.5, 2.5f, 9.5f, 8.5f, 12.5f, 6.5f});
+        floatFwdList2.sort();    // Both forward lists must sort first before merge
+        floatFwdList.merge(floatFwdList2); // merge floatFwdList & floatFwdList2, now floatFwdList2 is empty as all elements being moved
+        output_STL_forward_list_space(floatFwdList, "Merge(floatFwdList1, floatFwdList2");
+                                // 1.2 2.5 3 3.5 3.88 4 4.32 5.38 6.5 8.5 9 9.5 11.9 12.5
+
+        // 3. reverse()
+        floatFwdList.reverse();
+        output_STL_forward_list_space(floatFwdList, "reverse(floatFwdList)");
+                                // 12.5 11.9 9.5 9 8.5 6.5 5.38 4.32 4 3.88 3.5 3 2.5 1.2
+        
+        // 4. remove()/remove_if()
+        for (auto i = 0; i < 15; i++)
+        {
+            floatFwdList.remove(static_cast<float>(i) + 0.5);  // Should remove all the 0.5 entries
+        }
+        output_STL_forward_list_space(floatFwdList, "remove(i+0.5)");   // 11.9 9 5.38 4.32 4 3.88 3 1.2
+        // remove all the float values that are even numbers
+        floatFwdList.remove_if([](float n){ return static_cast<int>(n) % 2 == 0;});
+        output_STL_forward_list_space(floatFwdList, "remove_if(even_num)");   // 11.9 9 5.38 3.88 3 1.2
+
+        // 5. splice_after(), this will insert & move the whole array from list2 into list1 
+        output_STL_forward_list_space(floatFwdList, "floatFwdList");    // floatFwdList = 11.9 9 5.38 3.88 3 1.2
+        floatFwdList2.assign({40.1f, 50.3f, 65.3f, 23.5f, 72.8f});
+        output_STL_forward_list_space(floatFwdList2, "floatFwdList2");  // floatFwdList2 = 40.1 50.3 65.3 23.5 72.8
+        floatFwdList.splice_after(floatFwdList.before_begin(), floatFwdList2);
+        output_STL_forward_list_space(floatFwdList, "Splice_after(floatFwdList2)");    // 40.1 50.3 65.3 23.5 72.8 11.9 9 5.38 3.88 3 1.2
+
+        // 6. unique(), remove all the contiguous duplicates
+        std::forward_list<int> fwdListInt = {1, 2, 2, 2, 3, 3, 3, 4, 5, 4, 4, 6,6, 7, 5, 5, 5, 7, 8, 9, 9, 10, 0, 0, 1};
+        fwdListInt.unique();   
+        output_STL_forward_list_space(fwdListInt, "fwdListInt.unique()");    // 1 2 3 4 5 4 6 7 5 7 8 9 10 0 1       
+    }
+}
+
+
+/****************************************************************
+ * STL List:
+ * std::list is a container that supports constant time insertion and removal of elements from anywhere in the container. 
+ * Fast random access is not supported. It is usually implemented as a doubly-linked list. Compared to std::forward_list this
+ *  container provides bidirectional iteration capability while being less space efficient.
+ * 
+ *  Note: for forward_list and list, both iterators cannot use < it.end(), can only use != end() due to non-seqeuncial 
+ *  Member Functions: Ctor/Dtor, operator=, assign(), get_allocator()
+ *  Element access:  front(), back() 
+ *  Iterators: begin()/end()/rbegin()/rend()
+ *  Capacity: empty(), size(), max_size()
+ *  Modifers: clear(), insert()/emplace(), erase(), push_back()/push_front(), pop_back()/pop_front(), emplace_back()/emplace_front(),
+ *            resize(), swap()
+ *  Operations: merge(), splice(), remove()/remove_if(), reverse(), unique(), sort()
+ * 
+ * ***************************************************************/
+template<typename T>
+void output_std_list(std::list<T>& inputList, string output_tag)
+{
+    cout << output_tag << " = ";
+    for (auto it = inputList.begin(); it != inputList.end(); it++)
+    {
+        cout << *it << " ";
+    }
+    cout << std::endl;
+}
+
+void execute_STL_List()
+{
+    std::list<string> fruitList = {"Apple"};
+    fruitList.assign({"Orange", "Apple", "Watermelon", "Banana", "Kiwi"});
+    output_std_list(fruitList, "fruitList");
+    cout << "size = " << fruitList.size() << " max_size = " << fruitList.max_size() << endl;
+
+    fruitList.front() = "Big_Orange";
+    fruitList.back()  = "Small_Kiwi";
+    output_std_list(fruitList, "fruitList");
+
+    std::list<double> fruitPriceList;
+    if (fruitPriceList.empty())
+    {
+        auto it = fruitList.begin();
+        for (auto i = 0; i < fruitList.size(); i++, advance(it, 1))
+        {
+            double price = 0;
+            if (*it == "Big_Orange")
+                price = 30.5f;       // orange price = 30.5
+            else if (*it == "Apple")  // Apple price = 12.5
+                price = 12.5f;
+            else if (*it == "Watermelon")
+                price = 87.5f;
+            else if (*it == "Banana")
+                price = 56.8f;
+            else if (*it == "Small_Kiwi")
+                price = 99.35f;
+            
+            cout << "i = " << i << " = " << price << endl;
+            fruitPriceList.push_back(price);
+        }
+    }
+    output_std_list(fruitPriceList, "fruitPriceList");
+
+//   Modifers: clear(), insert()/emplace(), erase(), push_back()/push_front(), pop_back()/pop_front(), 
+//             emplace_back()/emplace_front(), resize(), swap()
+    list<double> tempFruitPriceList = fruitPriceList;
+    fruitPriceList.clear();
+    output_std_list(fruitPriceList, "fruitPriceList.clear()");
+    fruitPriceList = tempFruitPriceList;
+
+    // insert(), 3 ways to insert.
+    tempFruitPriceList.insert(tempFruitPriceList.end(), 5, 10000.0); // insert 5 x 10000 at end of list
+    output_std_list(tempFruitPriceList, "tempFruitPriceList.insert() 1");
+    tempFruitPriceList.insert(tempFruitPriceList.begin(), {8888.8, 8888.8, 8888.8, 8888.8, 8888.8}); // insert 5 x 8888.8 at begin of list
+    output_std_list(tempFruitPriceList, "tempFruitPriceList.insert() 2");
+    tempFruitPriceList.insert(tempFruitPriceList.end(), fruitPriceList.begin(), prev(fruitPriceList.end(), 3));  // insert fruitPriceList into begin
+    output_std_list(tempFruitPriceList, "tempFruitPriceList.insert() 3");
+
+    // erase()
+    tempFruitPriceList.erase(tempFruitPriceList.begin(), next(tempFruitPriceList.begin(), 5));
+    tempFruitPriceList.erase(prev(tempFruitPriceList.end(), 7), tempFruitPriceList.end());
+    output_std_list(tempFruitPriceList, "tempFruitPriceList.erase() ");
+
+    // pop_back() & pop_front)
+    while (tempFruitPriceList.size() != 0)
+    {
+        tempFruitPriceList.pop_front();
+        output_std_list(tempFruitPriceList, "tempFruitPriceList.pop_front() ");
+
+        if (!tempFruitPriceList.empty())
+        {
+            tempFruitPriceList.pop_back();
+            output_std_list(tempFruitPriceList, "tempFruitPriceList.pop_back() ");
+        }
+    }
+
+    // Swap()
+    tempFruitPriceList.swap(fruitPriceList);
+    output_std_list(tempFruitPriceList, "tempFruitPriceList.swap() ");
+    output_std_list(fruitPriceList, "fruitPriceList.swap() ");
+    
+    //   Operations: merge(), splice(), remove()/remove_if(), reverse(), unique(), sort()
+    tempFruitPriceList.swap(fruitPriceList);
+    fruitPriceList.sort();
+    output_std_list(fruitPriceList, "fruitPriceList.sort() ");
+    fruitPriceList.reverse();
+    output_std_list(fruitPriceList, "fruitPriceList.reverse() 1 ");
+    fruitPriceList.reverse();
+    output_std_list(fruitPriceList, "fruitPriceList.reverse() 2 "); 
+    list<double> fruitPriceList2 = {39.0, 39.5, 103.3, 68.9f, 2.3f, 78.5f};
+    fruitPriceList2.sort();
+
+    fruitPriceList.merge(fruitPriceList2);
+    output_std_list(fruitPriceList, "fruitPriceList.merge(fruitPriceList2) ");
+
+    // remove_if()
+    fruitPriceList.remove_if([](double input){ return input <= 50;});
+    output_std_list(fruitPriceList, "fruitPriceList.remove_if(input <= 50) ");  
 }
