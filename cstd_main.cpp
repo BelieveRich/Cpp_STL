@@ -7,6 +7,7 @@
 #include <vector>
 #include <forward_list>
 #include <list>
+#include <queue>  // include std::queue and std::priority_queue type
 
 using namespace std;
 
@@ -19,6 +20,8 @@ void execute_STL_Vector();
 void execute_STL_Deque();
 void execute_STL_Forward_List();
 void execute_STL_List();
+void execute_STL_Queue();
+void execute_STL_Priority_Queue();
 
 template<typename T, size_t N>
 void test_std_array_iterators(std::array<T,N>&);
@@ -27,12 +30,15 @@ void test_std_array_iterators(std::array<T,N>&);
 int main(int argc, char *argv[])
 {
 BEGIN:
+    // Q S H A L V
     cout << "This executable tests all the C++ Standard(STL) library functionalities:" << endl;
     cout << "1. Array" << endl;
     cout << "2. Vector" << endl;
     cout << "3. Deque" << endl;
     cout << "4. Forward_list" << endl;
     cout << "5. List" << endl;
+    cout << "6. Queue" << endl;
+    cout << "7. Priority_Queue" << endl;
     
     uint16_t input = 0;
     cout << "\n\nSelect CSTD case to run: ";    
@@ -73,6 +79,16 @@ BEGIN:
         case 5:
         {
             (void)execute_STL_List();
+            break;
+        }
+        case 6:
+        {
+            (void)execute_STL_Queue();
+            break;
+        }
+        case 7:
+        {
+            (void)execute_STL_Priority_Queue();
             break;
         }
         default:
@@ -821,4 +837,119 @@ void execute_STL_List()
     // remove_if()
     fruitPriceList.remove_if([](double input){ return input <= 50;});
     output_std_list(fruitPriceList, "fruitPriceList.remove_if(input <= 50) ");  
+}
+
+/*********************************************************************
+ * STL Queue:
+ * The std::queue class is a container adapter of deque<T> that gives FIFO queue
+ * The class template adcts as a wrapper the the underlying container
+ * Allows push back and pop front
+ * 
+ * Member functions: CTOR, DTOR, operatior=
+ *  1) Copy assignment operator. Replaces the contents with a copy of the contents of other. Effectively calls c = other.c;. 
+ *  2) Move assignment operator. Replaces the contents with those of other using move semantics. Effectively calls c = std::move(other.c);
+ * 
+ * Member object: Container c = std::deque<T> // (the underlying container)(Protected member object)
+ * Element access: front(), back()
+ * Capacity: empty(), size()
+ * Modifiers: push()/emplace()  // at the end
+ *            pop()   // the front
+ *            swap()
+ * 
+ * Note: Problem with queue is that it has no iterator, clear() or initializing list. Make it very hard to use.
+ *       It has only limited functions, though underlying deque<T> is very powerful. It is also very hard to print values as you will
+ *      need to pass a copy then pop() one by one to print. This is kind of stupid.
+ * *******************************************************************/
+template<typename T>
+void output_std_queue(std::queue<T> inputQ, string output_tag)
+{
+    cout << output_tag << " = ";
+    while (!inputQ.empty())
+    {
+        cout << inputQ.front() << " ";
+        inputQ.pop();  // pop the front
+    }
+    cout << endl;
+}
+
+void execute_STL_Queue()
+{
+    std::queue<string> queue1;
+    queue1.push("abc");
+    queue1.push("def");
+    queue1.push("xyz");
+    
+    std::queue<string> queue2 = queue1;
+    cout << "queue.back() = " << queue1.back() << " queue.front() = " << queue1.front() << endl;  // queue1 = xyz abc
+    if (!queue1.empty())
+    {
+        cout << "queue.size() = " << queue1.size() << endl;  // 3
+        queue1.pop();
+        queue1.pop();
+        cout << "queue.size() after 2 pops = " << queue1.size() << " queue.front() = " \
+            << queue1.front() << " queue.back() = " << queue1.back() << endl;;   // 1, xyz, xyz
+    }
+
+    output_std_queue(queue1, "queue1");   // xyz
+    output_std_queue(queue2, "queue2");   // abc def xyz
+    queue2.swap(queue1);
+    output_std_queue(queue1, "queue1 swapped");   // abc def xyz
+    output_std_queue(queue2, "queue2 swapped");   // xyz
+}
+
+/************************************************************************
+ * STL Priority Queue:
+ * A priority queue is a container adapter of std::vector<T> that provides constant time look-up of the largest element,
+ * at the expense of lgarithmic insertion and extraction.
+ * A priority queue can be similar to managing a heap, with the benefit of not being able to accidentally invalidate the heap.
+ * 
+ * Member objects:
+ * Container c - std::vector and std:deque satisfies. Need front(), push_back(), pop_back() 
+ * Compare comp - comparison function object
+ * 
+ * Member functions: CTOR/DTOR, operator=
+ * Element access: top()  // give top element
+ * Capacity: empty()/size()
+ * Modifiers: push(), emplace(), pop(), swap()
+ * 
+ * Note: priority_queue<T> will always put the comparison win result at top. We can specify different comparison win result. 
+ * ***********************************************************************/
+template<typename T>
+void output_STL_priority_queue(std::priority_queue<T> input_queue, string output_tag)
+{
+    cout << output_tag << " = ";
+    while (!input_queue.empty())
+    {
+        cout << input_queue.top() << " ";
+        input_queue.pop();
+    }
+    cout << endl;
+}
+
+void execute_STL_Priority_Queue()
+{
+    std::priority_queue<int> p_queue1;
+    p_queue1.push(-5);
+    p_queue1.push(15);
+    p_queue1.push(7);
+    p_queue1.push(-8);
+    p_queue1.push(-23);
+    p_queue1.push(87);
+    p_queue1.push(0);
+
+    std::priority_queue<int> p_queue2 = p_queue1;
+
+    cout << "p_queue1.top() = " <<  p_queue1.top() << " p_queue1.size() = " << p_queue1.size() << endl;
+    output_STL_priority_queue(p_queue1, "p_queue1 print");
+
+    // <value_type, container<value_type>, comparison_object>
+    std::priority_queue<float, std::vector<float>, std::less<float>> p_queue3;
+    p_queue3.push(-3.83);
+    p_queue3.push(-2.93);
+    p_queue3.push(-1.73);
+    p_queue3.push(-10.23);
+    p_queue3.push(8.83);
+    p_queue3.push(3.03);                  
+
+    output_STL_priority_queue(p_queue3, "p_queue3");  
 }
