@@ -8,6 +8,8 @@
 #include <forward_list>
 #include <list>
 #include <queue>  // include std::queue and std::priority_queue type
+#include <stack>
+#include <set>    // std::set and std::multi_set
 
 using namespace std;
 
@@ -15,13 +17,16 @@ using namespace std;
 // #define FULL_COMPILE_SPEED
 
 // Forward declaration
-void execute_STL_Array();
-void execute_STL_Vector();
-void execute_STL_Deque();
+void execute_STL_Array();   // sequential
+void execute_STL_Vector();  // sequential
+void execute_STL_Deque();   // sequential
 void execute_STL_Forward_List();
 void execute_STL_List();
 void execute_STL_Queue();
 void execute_STL_Priority_Queue();
+void execute_STL_Stack();
+void execute_STL_Set();   // associative
+                          // un_ordered
 
 template<typename T, size_t N>
 void test_std_array_iterators(std::array<T,N>&);
@@ -39,6 +44,9 @@ BEGIN:
     cout << "5. List" << endl;
     cout << "6. Queue" << endl;
     cout << "7. Priority_Queue" << endl;
+    cout << "8. Stack" << endl;
+    cout << "======================" << endl;
+    cout << "9. Set" << endl;
     
     uint16_t input = 0;
     cout << "\n\nSelect CSTD case to run: ";    
@@ -89,6 +97,16 @@ BEGIN:
         case 7:
         {
             (void)execute_STL_Priority_Queue();
+            break;
+        }
+        case 8:
+        {
+            (void)execute_STL_Stack();
+            break;
+        }
+        case 9:
+        {
+            (void)execute_STL_Set();
             break;
         }
         default:
@@ -453,6 +471,15 @@ For operations that involve frequent insertion or removals of elements at positi
  * Capacity: empty(), size(), resize(), max_size(),  shrink_to_fit()
  * Modifiers: clear(), insert(), emplace()/emplace_front()/emplace_back(), erase(), push_back()/push_front(),  pop_front/pop_back(),
  *            swap()
+ * 
+ * deque 的優點
+ *    可以再兩端進行 push 和 pop 操作
+ *    支持隨機訪問[i]
+
+ * deque 的缺點
+ *    佔用記憶體較多
+ *    Slower than vector due to two levels indexing
+
  ************************************************/
 template<typename T>
 void output_std_deque(std::deque<T>& myDeq, string output_tag)
@@ -900,7 +927,7 @@ void execute_STL_Queue()
 /************************************************************************
  * STL Priority Queue:
  * A priority queue is a container adapter of std::vector<T> that provides constant time look-up of the largest element,
- * at the expense of lgarithmic insertion and extraction.
+ * at the expense of logarithmic insertion and extraction.
  * A priority queue can be similar to managing a heap, with the benefit of not being able to accidentally invalidate the heap.
  * 
  * Member objects:
@@ -952,4 +979,140 @@ void execute_STL_Priority_Queue()
     p_queue3.push(3.03);                  
 
     output_STL_priority_queue(p_queue3, "p_queue3");  
+}
+
+
+/*****************************************************************************
+ * STL stack:
+ * std::stack class is a container adapter = c with underlying using std::deque<T> that provides LIFO data structure.
+ * 
+ * Require: push_back(), pop_back(), back()
+ * std::vector, std::deque and std::list all satisfy container requirements.
+ * 
+ * Member functions: CTOR/DTOR/operator=
+ * Element access: top()
+ * Capacity: empty(), size()
+ * Modifiers: push(), emplace(), pop(), swap()
+ * Member object: container C  (Protected member object)
+ * 
+ * *************************************************************************/
+void execute_STL_Stack()
+{
+    std::stack<string> stack1;
+    stack1.push("1. hello\n");
+    stack1.push("2. world\n");
+    stack1.push("3. this\n");
+    stack1.push("4. is wonderful!");
+
+    if (!stack1.empty())
+    {
+        cout << "stack1.top() = " << stack1.top();
+        cout << "stack1.size() = " << stack1.size();
+        std::stack<string> stack2;
+        stack2 = stack1;
+
+        stack1.pop();
+        stack1.pop();
+        stack1.pop();
+
+        cout <<"stack1.size() after 3 pops = " << stack1.size() << endl;
+        cout <<"stack2.size() = " << stack2.size() << endl;
+
+        stack2.swap(stack1);
+        cout <<"stack1.size() after swap() = " << stack1.size() << endl;
+        cout <<"stack2.size() after swap() = " << stack2.size() << endl;
+    }
+}
+
+/*********************************************************************
+ * STL Set & MultiSet:
+ * std::set is an associative container that contains a sorted set of unique objects of type Key.
+ * Sorting is done using the key comparison function Compare(). Search, removal, and insertion have log complexity.
+ * Sets are usually implemented by red-black tree.
+ * 
+ * std::multiset is same except it allows multiple keys with equivalent values. It is also sorted.
+ * 
+ * Member functions: CTOR/DTOR/ Operator=
+ * Iterators: begin/end, cbegin/cend, rbegin/rend
+ * Capacity: empty(), size(), max_size()
+ * Modifiers: clear(), insert(), emplace()/emplace_hint(), erase(), swap(), extract(), merge()
+ * Lookup: count() // return num of elements matching specific key
+ *         find()  // find element with specific key
+ *         contains()    // C++20, checks if the container contains element with specific key
+ *         equal_range() // returns range of elements matching a specific key
+ *         lower_bound() // returns an iterator to the first element not less than the given key
+ *         upper_bound() // returns an iterator to the first element greater than the given key
+ * Observers: key_comp()  // returns the function that compares keys
+ *            value_comp()  // returns the function that compares keys in objects of type value_type
+ * 
+ * Note: Can assume set() has no order due to sort(), usually insert()/erase() directly by value is better.
+ *       Iterator is hard to know the order unless traversing thru 
+ * ********************************************************************/
+template<typename T>
+void output_STL_Set_values(std::set<T>& set1, string output_tag)
+{
+    cout << output_tag << " = ";
+    for (auto it = set1.begin(); it != set1.end(); advance(it, 1))
+    {
+        cout << *it << " "; 
+    }
+    cout << endl;
+}
+
+template<typename T>
+void output_STL_MultiSet_values(std::multiset<T>& set1, string output_tag)
+{
+    cout << output_tag << " = ";
+    for (auto it = set1.begin(); it != set1.end(); advance(it, 1))
+    {
+        cout << *it << " "; 
+    }
+    cout << endl;
+}
+
+void execute_STL_Set()
+{
+    std::set<string> set1 = {"what", "is", "going", "on?"};
+    cout << "Set1.size() = " << set1.size() << endl;;    
+    output_STL_Set_values(set1, "set1");
+    set1.clear();
+    cout << "After clear(), set1.size() = " << set1.size();
+
+    set1 = {"what", "is", "going", "on?"};
+    // returns a std::pair<iterator, bool>, where iterator points where value was inserted, and bool indicates if success or fail
+    set1.insert({"test123", "test456", "test789"});
+    output_STL_Set_values(set1, "set1.insert()");
+
+    set1.erase(set1.begin()); // erase by iterator
+    set1.erase("test123");    // erase by value
+    output_STL_Set_values(set1, "set1.erase()");
+
+    set1.erase(set1.begin(), set1.end());  // erase by iterator [first, end], same as calling clear()
+    output_STL_Set_values(set1, "set1.erase by range ()");
+
+    // Lookups: count(), find(), contains(), equal_range(), lower_bound(), upper_bound()
+    // count() - Returns the number of elements with key that compares equivalent to the specified argument, 
+    //           which is either 1 or 0 since this container does not allow duplicates.
+    set1 = {"what", "is", "going", "on?", "test123", "test456", "going", "going", "test789"};
+    int num_found = set1.count("going");
+    cout << "Found going? " << num_found << endl;  // 1  -- Found
+    num_found = set1.count("hell?");
+    cout << "Found hell? " << num_found << endl;   // 0  -- not found
+
+    // find() -- finds an element with key equivalent to key. Return an iterator to it.
+    set1.insert(set1.end(), "Hell!");
+    auto key_iterator = set1.find("Hell!");
+    if (key_iterator != set1.end())
+    {
+        cout << "Found " << *key_iterator << "inside set1" << endl;
+        cout << "Iterator location is = " << distance(set1.begin(), key_iterator) << endl;
+        output_STL_Set_values(set1, "set1 after inserted Hell!");        
+    }
+
+    // Testing multiset
+    std::multiset<int> int_set = {2,2,3,2,9,1,10,2,3,3,8,7};
+    output_STL_MultiSet_values(int_set, "multiset");  // 1 2 2 2 2 3 3 3 7 8 9 10
+
+    cout << "multiset size = " << int_set.size() << endl;   // 12
+    cout << "multiset.count(2) = " << int_set.count(2) << endl << "cout(3) = " << int_set.count(3) << endl; // count(2) = 4 , count(3) = 3
 }
